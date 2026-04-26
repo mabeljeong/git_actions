@@ -2,8 +2,8 @@ name: Scrape Jobs
 
 on:
   schedule:
-    # 00:00, 06:00, 12:00, 18:00 UTC (4x per day)
-    - cron: "0 0,6,12,18 * * *"
+    # 00:00 and 12:00 UTC (2x per day)
+    - cron: "0 0,12 * * *"
   workflow_dispatch: {}
 
 permissions:
@@ -45,6 +45,8 @@ jobs:
           EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
           EMAIL_APP_PASSWORD: ${{ secrets.EMAIL_APP_PASSWORD }}
           EMAIL_RECIPIENT: ${{ secrets.EMAIL_RECIPIENT }}
+          LINKEDIN_EMAIL: ${{ secrets.LINKEDIN_EMAIL }}
+          LINKEDIN_PASSWORD: ${{ secrets.LINKEDIN_PASSWORD }}
         run: python main.py
 
       - name: Commit updated state

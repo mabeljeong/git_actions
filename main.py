@@ -15,9 +15,13 @@ import sys
 from pathlib import Path
 
 from notify import MissingCredentialsError, send_new_jobs_email
-from scrapers import Job, is_us_location, launch_browser, scrape_jpmc, scrape_mastercard
+from scrapers import (
+    Job,
+    launch_browser,
+    scrape_linkedin,
+)
 
-TITLE_KEYWORDS = ("data scientist",)
+TITLE_REQUIRED_TERMS = ("product", "data scientist")
 STATE_PATH = Path(__file__).parent / "state" / "seen_jobs.json"
 
 
@@ -41,7 +45,7 @@ def save_seen_ids(ids: set[str]) -> None:
 
 def title_matches(title: str) -> bool:
     low = title.lower()
-    return any(kw in low for kw in TITLE_KEYWORDS)
+    return all(term in low for term in TITLE_REQUIRED_TERMS)
 
 
 def run(dry_run: bool = False) -> int:
@@ -51,21 +55,14 @@ def run(dry_run: bool = False) -> int:
     all_jobs: list[Job] = []
     with launch_browser(headless=True) as (_browser, page):
         try:
-            all_jobs.extend(scrape_jpmc(page))
+            all_jobs.extend(scrape_linkedin(page))
         except Exception as exc:
-            print(f"[jpmc] ERROR: {exc}")
-        try:
-            all_jobs.extend(scrape_mastercard(page))
-        except Exception as exc:
-            print(f"[mastercard] ERROR: {exc}")
+            print(f"[linkedin] ERROR: {exc}")
 
     print(f"[scrape] Raw total: {len(all_jobs)} jobs")
 
-    filtered = [
-        j for j in all_jobs
-        if title_matches(j.title) and is_us_location(j.location)
-    ]
-    print(f"[filter] After title+location filter: {len(filtered)} jobs")
+    filtered = [j for j in all_jobs if title_matches(j.title)]
+    print(f"[filter] After title filter: {len(filtered)} jobs")
 
     new_jobs = [j for j in filtered if j.job_id not in seen_ids]
     print(f"[diff] {len(new_jobs)} NEW jobs vs previous state")
@@ -93,7 +90,9 @@ def run(dry_run: bool = False) -> int:
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Scrape + notify for new DS roles.")
+    ap = argparse.ArgumentParser(
+        description="Scrape + notify for new Product Data Scientist roles."
+    )
     ap.add_argument(
         "--dry-run",
         action="store_true",

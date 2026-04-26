@@ -36,7 +36,7 @@ def _get_creds() -> tuple[str, str, str]:
 
 
 def _format_body(new_jobs: list[Job]) -> tuple[str, str]:
-    lines_text = [f"{len(new_jobs)} new Data Scientist role(s) found:\n"]
+    lines_text = [f"{len(new_jobs)} new Product Data Scientist role(s) found:\n"]
     rows_html = []
     by_company: dict[str, list[Job]] = {}
     for job in new_jobs:
@@ -47,20 +47,24 @@ def _format_body(new_jobs: list[Job]) -> tuple[str, str]:
         for j in jobs:
             lines_text.append(f"- {j.title}")
             lines_text.append(f"  Location: {j.location or 'N/A'}")
+            if j.company_size:
+                lines_text.append(f"  Company size: {j.company_size}")
             lines_text.append(f"  URL: {j.url}")
             lines_text.append("")
         rows_html.append(f"<h3>{company} ({len(jobs)})</h3><ul>")
         for j in jobs:
             rows_html.append(
                 f'<li><a href="{j.url}">{j.title}</a>'
-                f'<br><small>{j.location or "N/A"}</small></li>'
+                f'<br><small>{j.location or "N/A"}'
+                f'{" | Company size: " + j.company_size if j.company_size else ""}'
+                "</small></li>"
             )
         rows_html.append("</ul>")
 
     text = "\n".join(lines_text)
     html = (
         "<html><body>"
-        f"<p><b>{len(new_jobs)} new Data Scientist role(s) found.</b></p>"
+        f"<p><b>{len(new_jobs)} new Product Data Scientist role(s) found.</b></p>"
         + "".join(rows_html)
         + "</body></html>"
     )
@@ -75,7 +79,7 @@ def send_new_jobs_email(new_jobs: Iterable[Job]) -> None:
     sender, password, recipient = _get_creds()
 
     msg = EmailMessage()
-    msg["Subject"] = f"[Job Alert] {len(new_jobs)} new Data Scientist role(s)"
+    msg["Subject"] = f"[Job Alert] {len(new_jobs)} new Product Data Scientist role(s)"
     msg["From"] = sender
     msg["To"] = recipient
 

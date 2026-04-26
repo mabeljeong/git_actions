@@ -17,6 +17,9 @@ class Job:
     title: str
     location: str
     url: str
+    posted_at: str = ""
+    company_size: str = ""
+    source: str = ""
 
     @property
     def job_id(self) -> str:
@@ -29,6 +32,9 @@ class Job:
             "title": self.title,
             "location": self.location,
             "url": self.url,
+            "posted_at": self.posted_at,
+            "company_size": self.company_size,
+            "source": self.source,
             "job_id": self.job_id,
         }
 
